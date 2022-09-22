@@ -14,12 +14,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 class ReggieApplicationTests {
     @Autowired
-    private RedisTemplate redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Test
     public void contextLoad() {
-        ValueOperations valueOperations = redisTemplate.opsForValue();
-        valueOperations.set("admin", "admin");
+        ValueOperations valueOperations = stringRedisTemplate.opsForValue();
 
         valueOperations.set("yyds", 123, 10L, TimeUnit.SECONDS);
 
@@ -28,7 +27,7 @@ class ReggieApplicationTests {
 
     @Test
     public void operationHash() {
-        HashOperations hashOperations = redisTemplate.opsForHash();
+        HashOperations hashOperations = stringRedisTemplate.opsForHash();
         Map<String, String> map = new HashMap<>();
         map.put("username", "admin");
         map.put("password", "admin");
@@ -39,27 +38,23 @@ class ReggieApplicationTests {
         for (Object o : user) {
             System.out.println(o);
         }
-        redisTemplate.delete("user");
+        stringRedisTemplate.delete("user");
     }
 
     @Test
     public void operationList() {
-        ListOperations listOperations = redisTemplate.opsForList();
+        ListOperations listOperations = stringRedisTemplate.opsForList();
         listOperations.leftPush("mylist", "a");
         listOperations.leftPushAll("mylist", "b", "c", "d");
         List<String> mylist = listOperations.range("mylist", 0, -1);
         for (Object o : mylist) {
             System.out.println(o);
         }
-        for (int i = 0; i < Objects.requireNonNull(listOperations.size("mylist")).intValue(); i++) {
-            String o = listOperations.rightPop("mylist").toString();
-            log.info(o);
-        }
     }
 
     @Test
     public void operationSet() {
-        SetOperations setOperations = redisTemplate.opsForSet();
+        SetOperations setOperations = stringRedisTemplate.opsForSet();
         setOperations.add("mySet", 20, 30, 40, 50, 60);
         Set<Integer> mySet = setOperations.members("mySet");
         for (Integer o : mySet) {
@@ -75,7 +70,7 @@ class ReggieApplicationTests {
 
     @Test
     public void operationZSet() {
-        ZSetOperations zSetOperations = redisTemplate.opsForZSet();
+        ZSetOperations zSetOperations = stringRedisTemplate.opsForZSet();
         zSetOperations.add("admin", "你看起来好像很好吃", 9.9f);   //优先保住小的
         zSetOperations.add("admin", "你看起来好像很好吃", 2.2f);
         zSetOperations.add("admin", "132456879", 3.3);
@@ -89,6 +84,8 @@ class ReggieApplicationTests {
             System.out.println(o);
             zSetOperations.remove("admin",o);
         }
-        redisTemplate.delete("admin");
+        stringRedisTemplate.delete("admin");
     }
+
+
 }

@@ -4,6 +4,8 @@ package top.bearsof.reggie.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.web.bind.annotation.*;
 import top.bearsof.reggie.common.*;
 import top.bearsof.reggie.entity.AddressBook;
@@ -12,6 +14,7 @@ import top.bearsof.reggie.service.UserService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RestController
@@ -19,6 +22,9 @@ import java.util.Map;
 public class UserController {
     @Autowired
     private SMSUtil smsUtil;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     @Autowired
     private UserService userService;
@@ -34,7 +40,10 @@ public class UserController {
         log.info("验证码为:{}",code);
         smsUtil.sendMailMessage(phone,"注册验证码","您的验证码为" + code);
         //设置对话访问记录   记录时长20
-        httpServletRequest.getSession().setAttribute(phone,code);
+        //httpServletRequest.getSession().setAttribute(phone,code);
+        //redis缓存验证码
+        ValueOperations valueOperations = redisTemplate.opsForValue();
+        valueOperations.set(phone,code,5, TimeUnit.MINUTES);
         return R.success("验证码发送成功");
     }
 
@@ -53,7 +62,7 @@ public class UserController {
         //System.out.println(code);
         log.info("用户的邮箱为:{}",phone);
         log.info("用户当前输入的验证码:{}",code);
-        String codeInSession = (String) httpServletRequest.getSession().getAttribute(phone);
+        String codeInSession = redisTemplate.opsForValue().get(phone).toString();
         log.info("系统生成的验证码为:{}",codeInSession);
         if(codeInSession!=null&& code.equals(codeInSession)){
             //表示一切正常进入注册程序
@@ -69,6 +78,9 @@ public class UserController {
                 userService.save(user);
             }
             httpServletRequest.getSession().setAttribute("user",user.getId());
+
+            //登录成功删除redis中的验证码key
+            redisTemplate.delete(phone);
             return R.success(user);
         }else {
             throw new GlobalException("未知错误");

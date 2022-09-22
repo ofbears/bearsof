@@ -26,7 +26,7 @@ spring:
         max-active: 8  #最大连接数
         max-wait: 1ms  #阻塞等待时间
         min-idle: 0  #连接池中的最小空闲连接
-    password: bearsof
+    password: "bearsof"
 
 mybatis-plus:
   global-config:
