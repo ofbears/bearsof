@@ -5,9 +5,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import top.bearsof.reggie.common.GlobalException;
 import top.bearsof.reggie.common.R;
+import top.bearsof.reggie.dto.DishDto;
 import top.bearsof.reggie.dto.SetmealDto;
 import top.bearsof.reggie.entity.Category;
 import top.bearsof.reggie.entity.Setmeal;
@@ -17,6 +19,7 @@ import top.bearsof.reggie.service.SetMealDishService;
 import top.bearsof.reggie.service.SetMealService;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @RestController
@@ -29,6 +32,9 @@ public class SetMealController {
     private CategoryService categoryService;
     @Autowired
     private SetMealDishService setMealDishService;
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 新增套餐功能
@@ -77,10 +83,17 @@ public class SetMealController {
         //log.info(categoryId.toString());
         //log.info(status.toString());
         //获取正常启用的套餐
+        List<Setmeal> setMealList = null;
+        String key ="dish_" + setmeal.getCategoryId() + "_" + setmeal.getStatus();
+        setMealList = (List<Setmeal>) redisTemplate.opsForValue().get(key);
+        if(setMealList!=null){
+            return R.success(setMealList);
+        }
         LambdaQueryWrapper<Setmeal> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(setmeal.getCategoryId()!=null,Setmeal::getCategoryId,setmeal.getCategoryId());
         lambdaQueryWrapper.eq(setmeal.getStatus()!=null,Setmeal::getStatus,setmeal.getStatus());
-        List<Setmeal> setMealList = setMealService.list(lambdaQueryWrapper);
+        setMealList = setMealService.list(lambdaQueryWrapper);
+        redisTemplate.opsForValue().set(key,setMealList,60, TimeUnit.MINUTES);
         return R.success(setMealList);
     }
 

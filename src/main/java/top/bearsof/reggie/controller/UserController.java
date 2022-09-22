@@ -7,8 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.web.bind.annotation.*;
-import top.bearsof.reggie.common.*;
-import top.bearsof.reggie.entity.AddressBook;
+import top.bearsof.reggie.common.GlobalException;
+import top.bearsof.reggie.common.R;
+import top.bearsof.reggie.common.SMSUtil;
+import top.bearsof.reggie.common.ValidateCodeUtils;
 import top.bearsof.reggie.entity.User;
 import top.bearsof.reggie.service.UserService;
 
