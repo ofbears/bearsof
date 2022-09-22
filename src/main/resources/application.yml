@@ -1,0 +1,40 @@
+server:
+  port: 80
+spring:
+  application:
+    name: reggie
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:mysql://127.0.0.1:3306/reggie
+    username: root
+    password: bearsof
+  mail:
+    host: smtp.163.com
+    port: 465
+    username: bearstet@163.com
+    password: YIYFNATIOAYEFOLV
+    default-encoding: UTF-8
+    protocol: smtps
+  redis:
+    host: bearsof.top
+    port: 6379
+    database: 0
+    jedis:
+      pool:
+        max-idle: 4  #连接池中最大空闲连接
+        max-active: 8  #最大连接数
+        max-wait: 1ms  #阻塞等待时间
+        min-idle: 0  #连接池中的最小空闲连接
+    password: bearsof
+
+mybatis-plus:
+  global-config:
+    db-config:
+      id-type: assign_id
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #在映射实体或者属性时，将数据库中表名和字段名中的下划线去除，按照驼峰命名
+    map-underscore-to-camel-case: true
+
+
