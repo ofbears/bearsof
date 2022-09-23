@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import top.bearsof.reggie.common.GlobalException;
@@ -41,6 +43,7 @@ public class SetMealController {
      * @param setMealDto 使用数据传输类替代 SetMeal和SetMealDish
      * @return 返回操作结果
      */
+    @Cacheable(value = "setmealCache",key = "")
     @PostMapping
     public R<String> saveSetMeal(@RequestBody SetmealDto setMealDto){
         setMealDishService.saveSetMeal(setMealDto);
@@ -78,22 +81,16 @@ public class SetMealController {
      * 获取指定套餐Id的内容
      * @return 返回套餐的菜信息
      */
+    //@Cacheable(value = "setmealCache",key = "#setmeal.categoryId + '_' + #setmeal.status")
     @GetMapping("/list")
     public R<List<Setmeal>> getSetMeal(Setmeal setmeal){
         //log.info(categoryId.toString());
         //log.info(status.toString());
         //获取正常启用的套餐
-        List<Setmeal> setMealList = null;
-        String key ="dish_" + setmeal.getCategoryId() + "_" + setmeal.getStatus();
-        setMealList = (List<Setmeal>) redisTemplate.opsForValue().get(key);
-        if(setMealList!=null){
-            return R.success(setMealList);
-        }
         LambdaQueryWrapper<Setmeal> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(setmeal.getCategoryId()!=null,Setmeal::getCategoryId,setmeal.getCategoryId());
         lambdaQueryWrapper.eq(setmeal.getStatus()!=null,Setmeal::getStatus,setmeal.getStatus());
-        setMealList = setMealService.list(lambdaQueryWrapper);
-        redisTemplate.opsForValue().set(key,setMealList,60, TimeUnit.MINUTES);
+        List<Setmeal> setMealList = setMealService.list(lambdaQueryWrapper);
         return R.success(setMealList);
     }
 
@@ -107,5 +104,18 @@ public class SetMealController {
         }else {
             throw new GlobalException("套餐为空");
         }
+    }
+
+
+    /**
+     * 修改删除过套餐后，同时清理掉redis中的缓存
+     * @param ids
+     * @return
+     */
+    @CacheEvict(value = "setmealCache",allEntries = true)
+    @DeleteMapping
+    public R<String> deleteSetMeal(Long ids){
+        setMealDishService.deleteSetMealWithSetMealDish(ids);
+        return R.success("删除成功");
     }
 }

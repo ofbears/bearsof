@@ -11,7 +11,9 @@ import top.bearsof.reggie.common.R;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Objects;
 import java.util.UUID;
 

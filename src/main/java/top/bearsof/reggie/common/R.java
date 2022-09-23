@@ -1,12 +1,15 @@
 package top.bearsof.reggie.common;
 
 import lombok.Data;
+
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
-public class R<T> {
-
+public class R<T> implements Serializable {
+    //serialVersionUID
+    private static final long serialVersionUID = 1L;
     private Integer code; //编码：1成功，0和其它数字为失败
 
     private String msg; //错误信息

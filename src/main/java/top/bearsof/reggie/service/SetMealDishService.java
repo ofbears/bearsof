@@ -8,4 +8,6 @@ import top.bearsof.reggie.entity.SetmealDish;
 
 public interface SetMealDishService extends IService<SetmealDish> {
     public void saveSetMeal(SetmealDto setmealDto);
+
+    public void deleteSetMealWithSetMealDish(Long ids);
 }
